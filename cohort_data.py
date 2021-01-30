@@ -229,35 +229,22 @@ def get_housemates_for(filename, name):
     {'Angelina Johnson', ..., 'Seamus Finnigan'}
     """
     housemates = set()
-    cohort = ''
-    house = ''  # should i initialize these here rather than in for-loop?
+    
+    student_list = all_data(filename)
 
     # 1. Use all_data() to extract house & cohort.
     # all_data returns a list of student tuples (full_name, house, advisor, cohort)
-    for student in all_data(filename):
+    for student in student_list:
         if name == student[0]:
             cohort = student[3]
             house = student[1]
             break
-
-        
-    # 2. Use students_by_cohort() to create set of cohort_mates
-    cohort_names = set(students_by_cohort(filename, cohort))
-
-    # 3. Use all_names_by_house() to create set house_names  
-    # all_names_by_house is an unlabeled list of houses with specific sequence
-    master_house_list = all_names_by_house(filename)
-
-    master_house_sequence = ("Dumbledore's Army", "Gryffindor",
-                      "Hufflepuff", "Ravenclaw", "Slytherin", "G", "I")
-
-    for i in range(len(master_house_sequence)):
-        if house == master_house_sequence[i]:
-            house_names = set(master_house_list[i])
     
-    # 4. Use set math to get overlap, then remove original student name
-    housemates = cohort_names.intersection(house_names)
-    housemates.remove(name) 
+    for student in student_list:
+        if student[3] == cohort and student[1] == house:
+            housemates.add(student[0])
+    
+    housemates.remove(name)
 
     return housemates
 
