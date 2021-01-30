@@ -232,18 +232,19 @@ def get_housemates_for(filename, name):
     
     student_list = all_data(filename)
 
-    # 1. Use all_data() to extract house & cohort.
-    # all_data returns a list of student tuples (full_name, house, advisor, cohort)
+    # student_list is a list of tuples (full_name, house, advisor, cohort)
     for student in student_list:
         if name == student[0]:
             cohort = student[3]
             house = student[1]
             break
     
+    # if cohort and name match, add to list of housemates
     for student in student_list:
         if student[3] == cohort and student[1] == house:
             housemates.add(student[0])
     
+    # single remove in instant time rather than check each name in each tuple
     housemates.remove(name)
 
     return housemates
