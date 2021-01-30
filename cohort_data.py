@@ -17,7 +17,7 @@ def all_houses(filename):
 
     houses = set()
 
-    with open(filename) as student_database:
+    with open(filename, 'r') as student_database:
         for line in student_database:
             line = line.rstrip().split('|')
             if line[2] != '':
@@ -56,7 +56,7 @@ def students_by_cohort(filename, cohort='All'):
 
     students = []
 
-    with open(filename) as student_database:
+    with open(filename, 'r') as student_database:
         for line in student_database:
             line = line.rstrip().split('|')
             name = f"{line[0]} {line[1]}"
@@ -98,8 +98,9 @@ def all_names_by_house(filename):
     Return:
       - list[list]: a list of lists
     """
-    all_houses = []
+    all_houses = []  # master list
 
+    # lines 104-110 given
     dumbledores_army = []
     gryffindor = []
     hufflepuff = []
@@ -108,23 +109,24 @@ def all_names_by_house(filename):
     ghosts = []
     instructors = []
 
-    houses = {"Dumbledore's Army": dumbledores_army, "Gryffindor": gryffindor, "Hufflepuff": hufflepuff,
-              "Ravenclaw": ravenclaw, "Slytherin": slytherin, "G": ghosts, "I": instructors}
-    
-    with open(filename) as student_database:
+    houses = {"Dumbledore's Army": dumbledores_army, "Gryffindor": gryffindor,
+              "Hufflepuff": hufflepuff, "Ravenclaw": ravenclaw,
+              "Slytherin": slytherin, "G": ghosts, "I": instructors}
+
+    with open(filename, 'r') as student_database:
         for line in student_database:
             line = line.rstrip().split('|')
             name = f"{line[0]} {line[1]}"
             if line[4] == 'G' or line[4] == 'I':
-                house = line[4]
+                house_str = line[4]
             else:
-                house = line[2]
-            houses[house].append(name)
-    
-    for house in houses:
-        all_houses.append(sorted(houses[house]))
+                house_str = line[2]
+            # Use houses dict to append name to appropriate house list
+            houses[house_str].append(name)
 
-    
+    # Sort each list, then append to all_houses master list
+    [all_houses.append(sorted(houses[h])) for h in houses]
+
     return all_houses
 
 
@@ -149,11 +151,11 @@ def all_data(filename):
 
     all_data = []
 
-    with open(filename) as student_database:
+    with open(filename, 'r') as student_database:
         for line in student_database:
             line = line.rstrip().split('|')
-            student_tuple = (f"{line[0]} {line[1]}", line[2], line[3], line[4])
-            all_data.append(student_tuple)
+            student_data = (f"{line[0]} {line[1]}", line[2], line[3], line[4])
+            all_data.append(student_data)
 
     return all_data
 
@@ -182,9 +184,9 @@ def get_cohort_for(filename, name):
     with open(filename) as student_database:
         for line in student_database:
             line = line.rstrip().split('|')
-            if name == f"{line[0]} {line[1]}": 
+            if name == f"{line[0]} {line[1]}":
                 return line[4]
-    
+
     return None
 
 
@@ -211,7 +213,7 @@ def find_duped_last_names(filename):
                 duped_last_names.add(line[1])
             else:
                 last_names.add(line[1])
-    
+
     return duped_last_names
 
 
@@ -227,29 +229,42 @@ def get_housemates_for(filename, name):
     {'Angelina Johnson', ..., 'Seamus Finnigan'}
     """
     housemates = set()
+    cohort = ''
+    house = ''  # should i initialize these here rather than in for-loop?
 
+    # 1. Use all_data() to extract house & cohort.
+    # all_data returns a list of student tuples (full_name, house, advisor, cohort)
     for student in all_data(filename):
         if name == student[0]:
             cohort = student[3]
             house = student[1]
+            break
+
         
-        break
+    # 2. Use students_by_cohort() to create set of cohort_mates
+    cohort_names = set(students_by_cohort(filename, cohort))
 
-    cohort_names = students_by_cohort(filename, cohort)
+    # 3. Use all_names_by_house() to create set house_names  
+    # all_names_by_house is an unlabeled list of houses with specific sequence
+    master_house_list = all_names_by_house(filename)
 
-    houses_in_order = sorted(list(all_houses))
+    master_house_sequence = ("Dumbledore's Army", "Gryffindor",
+                      "Hufflepuff", "Ravenclaw", "Slytherin", "G", "I")
 
-    houses_in_order.index(house)
+    for i in range(len(master_house_sequence)):
+        if house == master_house_sequence[i]:
+            house_names = set(master_house_list[i])
     
+    # 4. Use set math to get overlap, then remove original student name
+    housemates = cohort_names.intersection(house_names)
+    housemates.remove(name) 
+
     return housemates
-    
-
 
 
 ##############################################################################
 # END OF MAIN EXERCISE.  Yay!  You did it! You Rock!
 #
-
 if __name__ == '__main__':
     import doctest
 
